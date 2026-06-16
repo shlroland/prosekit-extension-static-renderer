@@ -107,6 +107,21 @@ pnpm typecheck
 pnpm build
 ```
 
+## Release
+
+Run the checks, bump the version, then publish:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm bump
+pnpm publish
+```
+
+`pnpm bump` uses [bumpp](https://github.com/antfu-collective/bumpp) to update the package version and optionally create a commit and tag.
+
 ## License
 
 MIT

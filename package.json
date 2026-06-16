@@ -67,6 +67,7 @@
   ],
   "scripts": {
     "build": "tsdown && vite build website",
+    "bump": "bumpp",
     "dev": "vite website",
     "lint": "eslint .",
     "fix": "eslint --fix . && prettier --write .",
@@ -113,6 +114,7 @@
     "@types/node": "^22.19.11",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
+    "bumpp": "^11.1.0",
     "eslint": "^10.4.1",
     "preact": "^10.29.2",
     "prettier": "^3.8.3",
