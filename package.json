@@ -1,0 +1,60 @@
+{
+  "name": "prosekit-extension-youtube",
+  "type": "module",
+  "version": "1.0.1",
+  "packageManager": "pnpm@11.5.1",
+  "description": "A ProseKit extension for embedding YouTube videos",
+  "author": "ocavue <ocavue@gmail.com>",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/ocavue",
+  "homepage": "https://github.com/prosekit/prosekit-extension-template",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prosekit/prosekit-extension-template.git"
+  },
+  "bugs": "https://github.com/prosekit/prosekit-extension-template/issues",
+  "keywords": [],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsdown && vite build website",
+    "dev": "vite website",
+    "lint": "eslint .",
+    "fix": "eslint --fix . && prettier --write .",
+    "pretest": "playwright install chromium",
+    "test": "vitest",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@prosekit/core": "^0.12.2",
+    "@prosekit/pm": "^0.1.17"
+  },
+  "devDependencies": {
+    "@ocavue/eslint-config": "^4.5.9",
+    "@ocavue/tsconfig": "^0.7.1",
+    "@prosekit/basic": "^0.9.4",
+    "@prosekit/extensions": "^0.17.3",
+    "@types/node": "^22.19.11",
+    "@vitest/browser-playwright": "^4.1.8",
+    "diffable-html-snapshot": "^0.2.0",
+    "eslint": "^10.4.1",
+    "playwright": "^1.60.0",
+    "prettier": "^3.8.3",
+    "tsdown": "^0.22.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
+  }
+}
