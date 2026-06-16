@@ -1,5 +1,15 @@
 import { defineBasicExtension } from '@prosekit/basic'
 import { createEditor, union } from '@prosekit/core'
+import { defineBackgroundColor } from '@prosekit/extensions/background-color'
+import { defineFontFamily } from '@prosekit/extensions/font-family'
+import { defineHighlight } from '@prosekit/extensions/highlight'
+import { defineMath } from '@prosekit/extensions/math'
+import { defineMention } from '@prosekit/extensions/mention'
+import { definePageBreak } from '@prosekit/extensions/page'
+import { defineSubscript } from '@prosekit/extensions/subscript'
+import { defineSuperscript } from '@prosekit/extensions/superscript'
+import { defineTextAlign } from '@prosekit/extensions/text-align'
+import { defineTextColor } from '@prosekit/extensions/text-color'
 import { createRoot } from 'react-dom/client'
 
 import { createHTMLRenderer } from '../src/html.ts'
@@ -28,7 +38,22 @@ type OutputMode = 'html' | 'markdown' | 'react'
 let outputMode: OutputMode = 'html'
 
 function defineEditorExtension() {
-  return union(defineBasicExtension())
+  return union(
+    defineBasicExtension(),
+    defineTextColor(),
+    defineBackgroundColor(),
+    defineFontFamily(),
+    defineTextAlign({ types: ['paragraph', 'heading'] }),
+    defineHighlight(),
+    defineSubscript(),
+    defineSuperscript(),
+    defineMention(),
+    definePageBreak(),
+    defineMath({
+      renderMathBlock: () => {},
+      renderMathInline: () => {},
+    }),
+  )
 }
 
 type EditorExtension = ReturnType<typeof defineEditorExtension>
@@ -38,11 +63,12 @@ const defaultContent = {
   content: [
     {
       type: 'heading',
-      attrs: { level: 1 },
+      attrs: { level: 1, textAlign: 'center' },
       content: [{ type: 'text', text: 'Static Renderer Demo' }],
     },
     {
       type: 'paragraph',
+      attrs: { textAlign: 'left' },
       content: [
         { type: 'text', text: 'Render ' },
         { type: 'text', marks: [{ type: 'bold' }], text: 'ProseKit JSON' },
@@ -51,13 +77,62 @@ const defaultContent = {
     },
     {
       type: 'paragraph',
+      attrs: { textAlign: 'left' },
       content: [
         {
           type: 'text',
           marks: [{ type: 'link', attrs: { href: 'https://prosekit.dev' } }],
           text: 'Links',
         },
-        { type: 'text', text: ', marks, headings, lists, and custom nodes can be rendered statically.' },
+        {
+          type: 'text',
+          text: ', marks, headings, lists, tables, mentions, math, and page breaks can be rendered statically.',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: { textAlign: 'right' },
+      content: [
+        { type: 'text', text: 'Extra extensions: ' },
+        {
+          type: 'text',
+          marks: [{ type: 'textColor', attrs: { color: '#2563eb' } }],
+          text: 'color',
+        },
+        { type: 'text', text: ', ' },
+        {
+          type: 'text',
+          marks: [{ type: 'backgroundColor', attrs: { color: '#fef3c7' } }],
+          text: 'background',
+        },
+        { type: 'text', text: ', ' },
+        {
+          type: 'text',
+          marks: [{ type: 'fontFamily', attrs: { family: 'Inter' } }],
+          text: 'font',
+        },
+        { type: 'text', text: ', ' },
+        {
+          type: 'text',
+          marks: [{ type: 'highlight' }],
+          text: 'highlight',
+        },
+        { type: 'text', text: ', ' },
+        {
+          type: 'text',
+          marks: [{ type: 'subscript' }],
+          text: 'sub',
+        },
+        { type: 'text', text: ', ' },
+        {
+          type: 'text',
+          marks: [{ type: 'superscript' }],
+          text: 'sup',
+        },
+        { type: 'text', text: ', and ' },
+        { type: 'mention', attrs: { id: '1', value: 'Ada', kind: 'user' } },
+        { type: 'text', text: '.' },
       ],
     },
     {
@@ -72,14 +147,29 @@ const defaultContent = {
     },
     {
       type: 'list',
-      attrs: { kind: 'bullet', order: null, checked: false, collapsed: false },
+      attrs: { kind: 'task', order: null, checked: true, collapsed: false },
       content: [
         {
           type: 'paragraph',
-          content: [{ type: 'text', text: 'Markdown string output' }],
+          content: [{ type: 'text', text: 'React element output' }],
         },
       ],
     },
+    {
+      type: 'mathBlock',
+      attrs: { language: 'tex' },
+      content: [{ type: 'text', text: 'E = mc^2' }],
+    },
+    {
+      type: 'paragraph',
+      attrs: { textAlign: 'left' },
+      content: [
+        { type: 'text', text: 'Inline math ' },
+        { type: 'mathInline', content: [{ type: 'text', text: 'x + y' }] },
+        { type: 'text', text: ' is rendered too.' },
+      ],
+    },
+    { type: 'pageBreak' },
   ],
 }
 

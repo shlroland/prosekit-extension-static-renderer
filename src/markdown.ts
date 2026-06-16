@@ -40,6 +40,24 @@ const defaultMarkdownNodeMapping: NodeMapping<string> = {
   orderedList({ children }) {
     return `\n${serializeChildrenToHTMLString(children)}`
   },
+  list({ node, children, parent }) {
+    const kind = node.attrs.kind as string | undefined
+    let marker = '-'
+
+    if (kind === 'ordered') {
+      let number = (node.attrs.order as number | null) || 1
+      parent?.forEach((child, _offset, index) => {
+        if (node === child) {
+          number = index + 1
+        }
+      })
+      marker = `${number}.`
+    } else if (kind === 'task') {
+      marker = node.attrs.checked ? '- [x]' : '- [ ]'
+    }
+
+    return `${marker} ${serializeChildrenToHTMLString(children).trim()}\n`
+  },
   listItem({ node, children, parent }) {
     if (parent?.type.name === 'orderedList') {
       let number = (parent.attrs.start as number) || 1
@@ -83,8 +101,24 @@ const defaultMarkdownNodeMapping: NodeMapping<string> = {
   tableHeader({ children }) {
     return serializeChildrenToHTMLString(children).trim()
   },
+  tableHeaderCell({ children }) {
+    return serializeChildrenToHTMLString(children).trim()
+  },
   tableCell({ children }) {
     return serializeChildrenToHTMLString(children).trim()
+  },
+  mention({ node }) {
+    const value = (node.attrs.value as string) || ''
+    return value ? `@${value}` : ''
+  },
+  pageBreak() {
+    return '\n---\n'
+  },
+  mathInline({ children }) {
+    return `$${serializeChildrenToHTMLString(children).trim()}$`
+  },
+  mathBlock({ children }) {
+    return `\n$$\n${serializeChildrenToHTMLString(children).trim()}\n$$\n`
   },
 }
 

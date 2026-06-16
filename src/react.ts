@@ -25,6 +25,11 @@ function mapAttrsToReactProps(
 
     if (name === 'class') {
       result.className = String(value)
+    } else if (name === 'contenteditable') {
+      result.contentEditable = value === true || value === 'true'
+      result.suppressContentEditableWarning = true
+    } else if (name === 'tabindex') {
+      result.tabIndex = Number(value)
     } else if (name === 'style' && typeof value === 'string') {
       // Convert CSS string to React style object
       const styleObj: Record<string, string> = {}
