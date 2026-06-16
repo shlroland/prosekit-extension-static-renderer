@@ -73,7 +73,8 @@
     "lint": "eslint .",
     "release": "pnpm check && bumpp --no-push && pnpm publish && git push --follow-tags",
     "fix": "eslint --fix . && prettier --write .",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc -b"
   },
   "dependencies": {
