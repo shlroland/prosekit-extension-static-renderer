@@ -107,12 +107,18 @@ body {
 }
 
 .editor-panel {
-  grid-row: span 2;
+  min-height: 35rem;
+}
+
+.output-panel {
+  min-height: 35rem;
 }
 
 .toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   min-height: 2.45rem;
   padding: 0.65rem 0.85rem;
   border-bottom: 1px solid var(--border);
@@ -125,8 +131,40 @@ body {
   font-size: 0.78rem;
 }
 
+.button-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.18rem;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel);
+}
+
+.button-group-item {
+  min-width: 4.6rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.button-group-item.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.button-group-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 #editor {
-  min-height: 35rem;
+  min-height: calc(35rem - 2.45rem);
   padding: 1.25rem;
   color: var(--fg);
 }
@@ -150,7 +188,7 @@ body {
 
 .output {
   height: calc(100% - 2.45rem);
-  min-height: 15.5rem;
+  min-height: calc(35rem - 2.45rem);
   margin: 0;
   padding: 1rem;
   overflow: auto;
@@ -159,6 +197,17 @@ body {
   font-size: 0.82rem;
   line-height: 1.55;
   white-space: pre-wrap;
+}
+
+.output-render {
+  min-height: calc(35rem - 2.45rem);
+  padding: 1.25rem;
+  overflow: auto;
+  color: var(--fg);
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .footer {
@@ -187,11 +236,17 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .editor-panel {
-    grid-row: auto;
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   #editor {
     min-height: 24rem;
+  }
+
+  .output,
+  .output-render {
+    min-height: 18rem;
   }
 }

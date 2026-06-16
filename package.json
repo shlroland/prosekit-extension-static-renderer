@@ -112,6 +112,7 @@
     "@prosekit/extensions": "^0.17.3",
     "@types/node": "^22.19.11",
     "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
     "eslint": "^10.4.1",
     "preact": "^10.29.2",
     "prettier": "^3.8.3",

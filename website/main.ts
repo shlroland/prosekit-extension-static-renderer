@@ -1,22 +1,31 @@
 import { defineBasicExtension } from '@prosekit/basic'
 import { createEditor, union } from '@prosekit/core'
+import { createRoot } from 'react-dom/client'
 
-import {
-  createHTMLRenderer,
-  createMarkdownRenderer,
-} from '../src/index.ts'
+import { createHTMLRenderer } from '../src/html.ts'
+import { createMarkdownRenderer } from '../src/markdown.ts'
+import { createReactRenderer } from '../src/react.ts'
 
 const editorElement = document.querySelector<HTMLDivElement>('#editor')
-const htmlOutput = document.querySelector<HTMLElement>('#html-output')
-const markdownOutput = document.querySelector<HTMLElement>('#markdown-output')
+const textOutput = document.querySelector<HTMLElement>('#text-output')
+const reactOutput = document.querySelector<HTMLDivElement>('#react-output')
+const outputTabs = Array.from(
+  document.querySelectorAll<HTMLButtonElement>(
+    '[data-output-mode]:not(:disabled)',
+  ),
+)
 
-if (!editorElement || !htmlOutput || !markdownOutput) {
+if (!editorElement || !textOutput || !reactOutput || outputTabs.length === 0) {
   throw new Error('Failed to find demo elements')
 }
 
 const editorRoot = editorElement
-const htmlOutputElement = htmlOutput
-const markdownOutputElement = markdownOutput
+const textOutputElement = textOutput
+const reactOutputElement = reactOutput
+
+type OutputMode = 'html' | 'markdown' | 'react'
+
+let outputMode: OutputMode = 'html'
 
 function defineEditorExtension() {
   return union(defineBasicExtension())
@@ -78,6 +87,8 @@ function start() {
   const extension = defineEditorExtension()
   const renderHTML = createHTMLRenderer({ extension })
   const renderMarkdown = createMarkdownRenderer({ extension })
+  const renderReact = createReactRenderer({ extension })
+  const reactRoot = createRoot(reactOutputElement)
   const editor = createEditor<EditorExtension>({
     extension,
     defaultContent,
@@ -85,11 +96,46 @@ function start() {
 
   function updateOutput() {
     const doc = editor.getDocJSON()
-    htmlOutputElement.textContent = renderHTML(doc)
-    markdownOutputElement.textContent = renderMarkdown(doc)
+    const isReactMode = outputMode === 'react'
+
+    textOutputElement.hidden = isReactMode
+    reactOutputElement.hidden = !isReactMode
+
+    if (outputMode === 'html') {
+      textOutputElement.textContent = renderHTML(doc)
+      reactRoot.render(null)
+    } else if (outputMode === 'markdown') {
+      textOutputElement.textContent = renderMarkdown(doc)
+      reactRoot.render(null)
+    } else {
+      textOutputElement.textContent = ''
+      reactRoot.render(renderReact(doc))
+    }
+  }
+
+  function setOutputMode(nextMode: OutputMode) {
+    outputMode = nextMode
+    for (const tab of outputTabs) {
+      const isActive = tab.dataset.outputMode === nextMode
+      tab.classList.toggle('active', isActive)
+      tab.setAttribute('aria-pressed', String(isActive))
+    }
+    updateOutput()
   }
 
   editor.mount(editorRoot)
+  for (const tab of outputTabs) {
+    tab.addEventListener('click', () => {
+      const nextMode = tab.dataset.outputMode
+      if (
+        nextMode === 'html'
+        || nextMode === 'markdown'
+        || nextMode === 'react'
+      ) {
+        setOutputMode(nextMode)
+      }
+    })
+  }
   updateOutput()
   editorRoot.addEventListener('input', updateOutput)
   editorRoot.addEventListener('keyup', updateOutput)

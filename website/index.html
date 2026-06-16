@@ -12,8 +12,8 @@
         <p class="eyebrow">prosekit-static-renderer</p>
         <h1 class="title">ProseKit Static Renderer</h1>
         <p class="subtitle">
-          Render ProseKit document JSON to HTML and Markdown without creating a
-          second editor instance.
+          Render ProseKit document JSON to HTML, Markdown, and framework output
+          without creating a second editor instance.
         </p>
       </header>
 
@@ -25,18 +25,50 @@
           <div id="editor"></div>
         </section>
 
-        <section class="panel" aria-label="HTML output">
+        <section class="panel output-panel" aria-label="Renderer output">
           <div class="toolbar">
-            <span class="label">html</span>
+            <span class="label">output</span>
+            <div class="button-group" role="group" aria-label="Renderer format">
+              <button
+                class="button-group-item active"
+                type="button"
+                data-output-mode="html"
+                aria-pressed="true"
+              >
+                HTML
+              </button>
+              <button
+                class="button-group-item"
+                type="button"
+                data-output-mode="markdown"
+                aria-pressed="false"
+              >
+                Markdown
+              </button>
+              <button
+                class="button-group-item"
+                type="button"
+                data-output-mode="react"
+                aria-pressed="false"
+              >
+                React
+              </button>
+              <button class="button-group-item" type="button" disabled>
+                Vue
+              </button>
+              <button class="button-group-item" type="button" disabled>
+                Solid
+              </button>
+              <button class="button-group-item" type="button" disabled>
+                Preact
+              </button>
+              <button class="button-group-item" type="button" disabled>
+                Svelte
+              </button>
+            </div>
           </div>
-          <pre id="html-output" class="output"></pre>
-        </section>
-
-        <section class="panel" aria-label="Markdown output">
-          <div class="toolbar">
-            <span class="label">markdown</span>
-          </div>
-          <pre id="markdown-output" class="output"></pre>
+          <pre id="text-output" class="output"></pre>
+          <div id="react-output" class="output-render ProseMirror" hidden></div>
         </section>
       </main>
 
