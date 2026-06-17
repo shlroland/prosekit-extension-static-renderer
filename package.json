@@ -6,13 +6,13 @@
   "description": "Render ProseKit and ProseMirror JSON to HTML, Markdown, and framework elements without an editor instance",
   "author": "shlroland <shlroland1995@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/shlroland/prosekit-extension-static-renderer#readme",
+  "homepage": "https://github.com/shlroland/prosekit-static-renderer#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shlroland/prosekit-extension-static-renderer.git"
+    "url": "git+https://github.com/shlroland/prosekit-static-renderer.git"
   },
   "bugs": {
-    "url": "https://github.com/shlroland/prosekit-extension-static-renderer/issues"
+    "url": "https://github.com/shlroland/prosekit-static-renderer/issues"
   },
   "keywords": [
     "prosekit",
