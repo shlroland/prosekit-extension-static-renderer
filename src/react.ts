@@ -51,7 +51,9 @@ function mapAttrsToReactProps(
         const styleKey = part.slice(0, colonIndex).trim()
         const styleValue = part.slice(colonIndex + 1).trim()
         if (styleKey && styleValue) {
-          const camelCaseKey = styleKey.replaceAll(/-([a-z])/g, (_, c: string) => c.toUpperCase())
+          const camelCaseKey = styleKey.startsWith('--')
+            ? styleKey
+            : styleKey.replaceAll(/-([a-z])/g, (_, c: string) => c.toUpperCase())
           styleObj[camelCaseKey] = styleValue
         }
       }

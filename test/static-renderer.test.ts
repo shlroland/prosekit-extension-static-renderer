@@ -474,6 +474,7 @@ describe('framework renderers', () => {
     expect(html).toContain('<h2 style="text-align:center">')
     expect(html).toContain('data-mention="user"')
     expect(html).toContain('prosemirror-flat-list')
+    expect(html).toContain('--prosemirror-flat-list-order:1')
     expect(html).toContain('<th><p style="text-align:left">Feature</p></th>')
     expect(html).toContain('prosemirror-math-block')
   })

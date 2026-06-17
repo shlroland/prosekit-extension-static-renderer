@@ -32,15 +32,9 @@ export type StaticRendererSchemaOptions =
     }
 
 /**
- * Options for the static renderer.
+ * Options for creating a reusable static renderer.
  */
-export type StaticRendererCreateOptions = StaticRendererSchemaOptions & {
-  /**
-   * The Document object to use for DOM operations. If not provided, defaults
-   * to the current browser's document object. Useful for server-side rendering.
-   */
-  document?: Document
-}
+export type StaticRendererCreateOptions = StaticRendererSchemaOptions
 
 /**
  * Options for one-shot static rendering.

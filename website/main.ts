@@ -1,6 +1,7 @@
 import { defineBasicExtension } from '@prosekit/basic'
 import { createEditor, union } from '@prosekit/core'
 import { defineBackgroundColor } from '@prosekit/extensions/background-color'
+import { defineCodeBlockShiki } from '@prosekit/extensions/code-block'
 import { defineFontFamily } from '@prosekit/extensions/font-family'
 import { defineHighlight } from '@prosekit/extensions/highlight'
 import { defineMath } from '@prosekit/extensions/math'
@@ -10,6 +11,8 @@ import { defineSubscript } from '@prosekit/extensions/subscript'
 import { defineSuperscript } from '@prosekit/extensions/superscript'
 import { defineTextAlign } from '@prosekit/extensions/text-align'
 import { defineTextColor } from '@prosekit/extensions/text-color'
+import katex from 'katex'
+import { createElement, useEffect, useState, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { createHTMLRenderer } from '../src/html.ts'
@@ -34,7 +37,6 @@ const textOutputElement = textOutput
 const reactOutputElement = reactOutput
 
 type OutputMode = 'html' | 'markdown' | 'react'
-type HighlightLanguage = 'html' | 'markdown'
 
 let outputMode: OutputMode = 'html'
 let outputUpdateID = 0
@@ -59,6 +61,7 @@ async function createDemoHighlighter() {
     { createJavaScriptRegexEngine },
     { default: html },
     { default: markdown },
+    { default: typescript },
     { default: githubLight },
     { default: githubDark },
   ] = await Promise.all([
@@ -66,20 +69,21 @@ async function createDemoHighlighter() {
     import('shiki/engine/javascript'),
     import('shiki/langs/html.mjs'),
     import('shiki/langs/markdown.mjs'),
+    import('shiki/langs/typescript.mjs'),
     import('shiki/themes/github-light.mjs'),
     import('shiki/themes/github-dark.mjs'),
   ])
 
   return await createHighlighterCore({
     engine: createJavaScriptRegexEngine(),
-    langs: [html, markdown],
+    langs: [html, markdown, typescript],
     themes: [githubLight, githubDark],
   })
 }
 
 async function highlightCode(
   code: string,
-  lang: HighlightLanguage,
+  lang: string,
 ): Promise<string> {
   highlighterPromise ??= createDemoHighlighter()
   const highlighter = await highlighterPromise
@@ -89,6 +93,94 @@ async function highlightCode(
     themes: {
       light: 'github-light',
       dark: 'github-dark',
+    },
+  })
+}
+
+function normalizeCodeLanguage(language: unknown): string {
+  if (language === 'ts') {
+    return 'typescript'
+  }
+  return typeof language === 'string' && language ? language : 'typescript'
+}
+
+function renderMathToHTML(value: string, displayMode: boolean): string {
+  return katex.renderToString(value, {
+    displayMode,
+    throwOnError: false,
+  })
+}
+
+function renderMathToElement(
+  value: string,
+  element: HTMLElement,
+  displayMode: boolean,
+): void {
+  katex.render(value, element, {
+    displayMode,
+    throwOnError: false,
+  })
+}
+
+function ReactCodeBlock({
+  code,
+  language,
+}: {
+  code: string
+  language: string
+}): ReactNode {
+  const [html, setHTML] = useState<string>()
+
+  useEffect(() => {
+    let active = true
+    setHTML(undefined)
+
+    void highlightCode(code, normalizeCodeLanguage(language))
+      .then((nextHTML) => {
+        if (active) {
+          setHTML(nextHTML)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setHTML(undefined)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [code, language])
+
+  if (html) {
+    return createElement('div', {
+      className: 'rendered-code-block',
+      dangerouslySetInnerHTML: { __html: html },
+    })
+  }
+
+  return createElement(
+    'pre',
+    { 'data-language': language || undefined },
+    createElement(
+      'code',
+      { className: language ? `language-${language}` : undefined },
+      code,
+    ),
+  )
+}
+
+function ReactMath({
+  value,
+  displayMode,
+}: {
+  value: string
+  displayMode: boolean
+}): ReactNode {
+  return createElement(displayMode ? 'div' : 'span', {
+    className: displayMode ? 'rendered-math-block' : 'rendered-math-inline',
+    dangerouslySetInnerHTML: {
+      __html: renderMathToHTML(value, displayMode),
     },
   })
 }
@@ -106,8 +198,12 @@ function defineEditorExtension() {
     defineMention(),
     definePageBreak(),
     defineMath({
-      renderMathBlock: () => {},
-      renderMathInline: () => {},
+      renderMathBlock: (value, element) => renderMathToElement(value, element, true),
+      renderMathInline: (value, element) => renderMathToElement(value, element, false),
+    }),
+    defineCodeBlockShiki({
+      langs: ['typescript', 'tex', 'text'],
+      themes: ['github-light'],
     }),
   )
 }
@@ -335,7 +431,29 @@ function start() {
   const extension = defineEditorExtension()
   const renderHTML = createHTMLRenderer({ extension })
   const renderMarkdown = createMarkdownRenderer({ extension })
-  const renderReact = createReactRenderer({ extension })
+  const renderReact = createReactRenderer({
+    extension,
+    nodeMapping: {
+      codeBlock: ({ node }) => {
+        return createElement(ReactCodeBlock, {
+          code: node.textContent,
+          language: String(node.attrs.language || ''),
+        })
+      },
+      mathBlock: ({ node }) => {
+        return createElement(ReactMath, {
+          value: node.textContent,
+          displayMode: true,
+        })
+      },
+      mathInline: ({ node }) => {
+        return createElement(ReactMath, {
+          value: node.textContent,
+          displayMode: false,
+        })
+      },
+    },
+  })
   const reactRoot = createRoot(reactOutputElement)
   const editor = createEditor<EditorExtension>({
     extension,
