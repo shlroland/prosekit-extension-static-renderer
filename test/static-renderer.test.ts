@@ -27,6 +27,40 @@ import { renderToSvelteAST } from '../src/svelte.ts'
 import { renderToVueElement } from '../src/vue.ts'
 
 const extension = union(defineBasicExtension())
+const expectedExtendedNodeNames = [
+  'blockquote',
+  'codeBlock',
+  'doc',
+  'hardBreak',
+  'heading',
+  'horizontalRule',
+  'image',
+  'list',
+  'mathBlock',
+  'mathInline',
+  'mention',
+  'pageBreak',
+  'paragraph',
+  'table',
+  'tableCell',
+  'tableHeaderCell',
+  'tableRow',
+  'text',
+]
+const expectedExtendedMarkNames = [
+  'backgroundColor',
+  'bold',
+  'code',
+  'fontFamily',
+  'highlight',
+  'italic',
+  'link',
+  'strike',
+  'subscript',
+  'superscript',
+  'textColor',
+  'underline',
+]
 const prosemirrorSchema = new Schema({
   nodes: {
     doc: { content: 'block+' },
@@ -72,6 +106,14 @@ const richContent = {
       type: 'paragraph',
       attrs: { textAlign: 'right' },
       content: [
+        { type: 'text', marks: [{ type: 'italic' }], text: 'italic' },
+        { type: 'text', text: ', ' },
+        { type: 'text', marks: [{ type: 'underline' }], text: 'underline' },
+        { type: 'text', text: ', ' },
+        { type: 'text', marks: [{ type: 'strike' }], text: 'strike' },
+        { type: 'text', text: ', ' },
+        { type: 'text', marks: [{ type: 'code' }], text: 'code' },
+        { type: 'hardBreak' },
         { type: 'text', text: 'Styled ' },
         {
           type: 'text',
@@ -114,12 +156,31 @@ const richContent = {
       ],
     },
     {
+      type: 'blockquote',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Quoted content' }],
+        },
+      ],
+    },
+    {
       type: 'list',
       attrs: { kind: 'bullet', order: null, checked: false, collapsed: false },
       content: [
         {
           type: 'paragraph',
           content: [{ type: 'text', text: 'Bullet item' }],
+        },
+      ],
+    },
+    {
+      type: 'list',
+      attrs: { kind: 'ordered', order: 1, checked: false, collapsed: false },
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Ordered item' }],
         },
       ],
     },
@@ -133,6 +194,15 @@ const richContent = {
         },
       ],
     },
+    {
+      type: 'image',
+      attrs: {
+        src: 'https://static.photos/yellow/640x360/42',
+        width: 48,
+        height: 48,
+      },
+    },
+    { type: 'horizontalRule' },
     {
       type: 'table',
       content: [
@@ -183,6 +253,11 @@ const richContent = {
           ],
         },
       ],
+    },
+    {
+      type: 'codeBlock',
+      attrs: { language: 'ts' },
+      content: [{ type: 'text', text: 'const answer = 42' }],
     },
     {
       type: 'mathBlock',
@@ -405,6 +480,17 @@ describe('framework renderers', () => {
 })
 
 describe('ProseKit extension compatibility', () => {
+  it('includes every schema type used by the full demo extension', () => {
+    const schema = extendedExtension.schema
+
+    if (!schema) {
+      throw new Error('Expected extended extension to define a schema')
+    }
+
+    expect(Object.keys(schema.nodes).sort()).toEqual(expectedExtendedNodeNames)
+    expect(Object.keys(schema.marks).sort()).toEqual(expectedExtendedMarkNames)
+  })
+
   it('has toDOM for every non built-in schema type in the extended extension', () => {
     const missingNodes: string[] = []
     const missingMarks: string[] = []
@@ -436,12 +522,24 @@ describe('ProseKit extension compatibility', () => {
     })
 
     expect(html).toContain('<h2 style="text-align:center">')
+    expect(html).toContain('<em>italic</em>')
+    expect(html).toContain('<u>underline</u>')
+    expect(html).toContain('<s>strike</s>')
+    expect(html).toContain('<code>code</code>')
+    expect(html).toContain('<br/>')
     expect(html).toContain('data-text-color="#2563eb"')
     expect(html).toContain('data-background-color="#fef3c7"')
     expect(html).toContain('data-font-family="Inter"')
     expect(html).toContain('<mark>highlight</mark>')
     expect(html).toContain('<sub>sub</sub>')
     expect(html).toContain('<sup>sup</sup>')
+    expect(html).toContain('<blockquote><p style="text-align:left">Quoted content</p></blockquote>')
+    expect(html).toContain('prosemirror-flat-list')
+    expect(html).toContain('Ordered item')
+    expect(html).toContain('<img src="https://static.photos/yellow/640x360/42" width="48" height="48"/>')
+    expect(html).toContain('<div class="prosekit-horizontal-rule"><hr/></div>')
+    expect(html).toContain('<table>')
+    expect(html).toContain('<pre data-language="ts"><code class="language-ts">const answer = 42</code></pre>')
     expect(html).toContain('data-mention="user"')
     expect(html).toContain('prosekit-page-break')
     expect(html).toContain('prosemirror-math-inline')

@@ -148,6 +148,22 @@ const defaultContent = {
     },
     {
       type: 'paragraph',
+      attrs: { textAlign: 'left' },
+      content: [
+        { type: 'text', text: 'Inline schema coverage: ' },
+        { type: 'text', marks: [{ type: 'italic' }], text: 'italic' },
+        { type: 'text', text: ', ' },
+        { type: 'text', marks: [{ type: 'underline' }], text: 'underline' },
+        { type: 'text', text: ', ' },
+        { type: 'text', marks: [{ type: 'strike' }], text: 'strike' },
+        { type: 'text', text: ', ' },
+        { type: 'text', marks: [{ type: 'code' }], text: 'code' },
+        { type: 'hardBreak' },
+        { type: 'text', text: 'Hard breaks are inline nodes too.' },
+      ],
+    },
+    {
+      type: 'paragraph',
       attrs: { textAlign: 'right' },
       content: [
         { type: 'text', text: 'Extra extensions: ' },
@@ -192,12 +208,33 @@ const defaultContent = {
       ],
     },
     {
+      type: 'blockquote',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Blockquotes render through the schema toDOM spec.' },
+          ],
+        },
+      ],
+    },
+    {
       type: 'list',
       attrs: { kind: 'bullet', order: null, checked: false, collapsed: false },
       content: [
         {
           type: 'paragraph',
           content: [{ type: 'text', text: 'HTML string output' }],
+        },
+      ],
+    },
+    {
+      type: 'list',
+      attrs: { kind: 'ordered', order: 1, checked: false, collapsed: false },
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Ordered flat-list item' }],
         },
       ],
     },
@@ -211,6 +248,71 @@ const defaultContent = {
         },
       ],
     },
+    {
+      type: 'table',
+      content: [
+        {
+          type: 'tableRow',
+          content: [
+            {
+              type: 'tableHeaderCell',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [{ type: 'text', text: 'Schema type' }],
+                },
+              ],
+            },
+            {
+              type: 'tableHeaderCell',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [{ type: 'text', text: 'Static output' }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'tableRow',
+          content: [
+            {
+              type: 'tableCell',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [{ type: 'text', text: 'table/tableRow/tableCell' }],
+                },
+              ],
+            },
+            {
+              type: 'tableCell',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [{ type: 'text', text: 'HTML, Markdown, React' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'codeBlock',
+      attrs: { language: 'ts' },
+      content: [{ type: 'text', text: 'const render = createHTMLRenderer({ extension })' }],
+    },
+    {
+      type: 'image',
+      attrs: {
+        src: 'https://static.photos/yellow/640x360/42',
+        width: 48,
+        height: 48,
+      },
+    },
+    { type: 'horizontalRule' },
     {
       type: 'mathBlock',
       attrs: { language: 'tex' },
