@@ -1,7 +1,7 @@
 {
   "name": "prosekit-static-renderer",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "packageManager": "pnpm@11.5.1",
   "description": "Render ProseKit and ProseMirror JSON to HTML, Markdown, and framework elements without an editor instance",
   "author": "shlroland <shlroland1995@gmail.com>",

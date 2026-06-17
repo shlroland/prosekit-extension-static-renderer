@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/shlroland/prosekit-static-renderer/compare/v0.2.0...v0.3.0) (2026-06-17)
+
+
+### Features
+
+* accept prosemirror schema in renderers ([3a5d2e9](https://github.com/shlroland/prosekit-static-renderer/commit/3a5d2e9154a852389dd195e255971dddcf923d5c))
+* add React demo previews ([2416ce4](https://github.com/shlroland/prosekit-static-renderer/commit/2416ce476417592faf6e4e032176428006819b3d))
+
+
+### Bug Fixes
+
+* align package repository metadata ([c01fb71](https://github.com/shlroland/prosekit-static-renderer/commit/c01fb718abb7be4c46f90996255811e463ce7ce8))
+* harden static renderer output ([6130c27](https://github.com/shlroland/prosekit-static-renderer/commit/6130c2769a9d089a7a06374bdad33ccef1b1e62a))
+
 ## [0.2.0](https://github.com/shlroland/prosekit-static-renderer/compare/v0.1.1...v0.2.0) (2026-06-17)
 
 
