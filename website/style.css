@@ -178,12 +178,20 @@ body {
   box-shadow: none;
 }
 
-#editor code {
+:where(#editor, .output-render) :not(pre) > code {
   padding: 0.12em 0.35em;
   border: 1px solid var(--border);
   border-radius: 5px;
   background: var(--bar);
   font-size: 0.9em;
+}
+
+:where(#editor, .output-render) pre code {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: inherit;
 }
 
 .output {
