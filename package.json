@@ -4,9 +4,8 @@
   "version": "0.2.0",
   "packageManager": "pnpm@11.5.1",
   "description": "Render ProseKit and ProseMirror JSON to HTML, Markdown, and framework elements without an editor instance",
-  "author": "ocavue <ocavue@gmail.com>",
+  "author": "shlroland <shlroland1995@gmail.com>",
   "license": "MIT",
-  "funding": "https://github.com/sponsors/ocavue",
   "homepage": "https://github.com/shlroland/prosekit-extension-static-renderer#readme",
   "repository": {
     "type": "git",
