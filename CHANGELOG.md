@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/shlroland/prosekit-static-renderer/compare/v0.3.0...v0.4.0) (2026-06-18)
+
+
+### Features
+
+* document and demo framework renderers ([abe953f](https://github.com/shlroland/prosekit-static-renderer/commit/abe953f346c78af4b1a5f83739293dba2fdee008))
+
+
+### Bug Fixes
+
+* render svelte demo output ([03bb0df](https://github.com/shlroland/prosekit-static-renderer/commit/03bb0df7dd4a7599d3daac9d3331c01dcf6cbd73))
+
 ## [0.3.0](https://github.com/shlroland/prosekit-static-renderer/compare/v0.2.0...v0.3.0) (2026-06-17)
 
 
