@@ -12,8 +12,11 @@ import { defineSuperscript } from '@prosekit/extensions/superscript'
 import { defineTextAlign } from '@prosekit/extensions/text-align'
 import { defineTextColor } from '@prosekit/extensions/text-color'
 import { type DOMOutputSpec, Schema } from '@prosekit/pm/model'
+import { renderToString as renderVueToString } from '@vue/server-renderer'
+import { renderToStaticMarkup as renderPreactToStaticMarkup } from 'preact-render-to-string'
 import { isValidElement, type ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { renderToString as renderSolidToString } from 'solid-js/web'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -134,6 +137,40 @@ const extendedExtension = union(
     renderMathInline: () => {},
   }),
 )
+
+function normalizeSolidHTML(html: string): string {
+  return html.replaceAll(/ data-hk="[^"]*"/g, '').replaceAll(' >', '>')
+}
+
+function normalizeVueHTML(html: string): string {
+  return html.replace('<!--[-->', '').replace('<!--]-->', '')
+}
+
+function normalizeFrameworkHTML(html: string): string {
+  return normalizeVueHTML(normalizeSolidHTML(html))
+}
+
+function expectExtendedSSRHTML(html: string): void {
+  expect(html).toContain('<h2 style="text-align:center">')
+  expect(html).toContain('data-mention="user"')
+  expect(html).toContain('prosemirror-flat-list')
+  expect(html).toMatch(/--prosemirror-flat-list-order:\s*1/)
+  expect(html).toContain('<th><p style="text-align:left">Feature</p></th>')
+  expect(html).toContain('prosemirror-math-block')
+}
+
+function expectSafeStaticAttrsHTML(html: string): void {
+  expect(html).toMatch(/class="field-label\s*"/)
+  expect(html).toContain('for="field-id"')
+  expect(html).toContain('tabindex="2"')
+  expect(html).toContain('data-role="label"')
+  expect(html).toMatch(/view[Bb]ox="0 0 16 16"/)
+  expect(html).toContain('stroke-width="2"')
+  expect(html).toContain('clip-rule="evenodd"')
+  expect(html).not.toContain('href=')
+  expect(html).not.toContain('onclick')
+  expect(html).not.toContain('javascript:')
+}
 
 const richContent = {
   type: 'doc',
@@ -659,6 +696,45 @@ describe('framework renderers', () => {
     expect(renderToVueElement({ extension, content })).toBeTruthy()
   })
 
+  it('renders basic content through framework SSR', async () => {
+    const content = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Hello ' },
+            { type: 'text', marks: [{ type: 'bold' }], text: 'World' },
+          ],
+        },
+      ],
+    } satisfies NodeJSON
+    const expectedHTML = '<p>Hello <strong>World</strong></p>'
+
+    expect(
+      renderToStaticMarkup(renderToReactElement({ extension, content })),
+    ).toBe(expectedHTML)
+    expect(
+      renderPreactToStaticMarkup(
+        renderToPreactElement({ extension, content }),
+      ),
+    ).toBe(expectedHTML)
+    expect(
+      normalizeFrameworkHTML(
+        renderSolidToString(() =>
+          renderToSolidElement({ extension, content }),
+        ),
+      ),
+    ).toBe(expectedHTML)
+    const vueElement = renderToVueElement({ extension, content })
+    if (typeof vueElement === 'string') {
+      throw new TypeError('Expected renderToVueElement to return a Vue VNode')
+    }
+
+    const vueHTML = await renderVueToString(vueElement)
+    expect(normalizeFrameworkHTML(vueHTML)).toBe(expectedHTML)
+  })
+
   it('renders extended ProseKit extension content through React SSR', () => {
     const element = renderToReactElement({
       extension: extendedExtension,
@@ -666,12 +742,38 @@ describe('framework renderers', () => {
     })
 
     const html = renderToStaticMarkup(element)
-    expect(html).toContain('<h2 style="text-align:center">')
-    expect(html).toContain('data-mention="user"')
-    expect(html).toContain('prosemirror-flat-list')
-    expect(html).toContain('--prosemirror-flat-list-order:1')
-    expect(html).toContain('<th><p style="text-align:left">Feature</p></th>')
-    expect(html).toContain('prosemirror-math-block')
+    expectExtendedSSRHTML(html)
+  })
+
+  it('renders extended ProseKit extension content through non-React framework SSR', async () => {
+    const preactHTML = renderPreactToStaticMarkup(
+      renderToPreactElement({
+        extension: extendedExtension,
+        content: richContent,
+      }),
+    )
+    expectExtendedSSRHTML(preactHTML)
+
+    const solidHTML = normalizeFrameworkHTML(
+      renderSolidToString(() =>
+        renderToSolidElement({
+          extension: extendedExtension,
+          content: richContent,
+        }),
+      ),
+    )
+    expectExtendedSSRHTML(solidHTML)
+
+    const vueElement = renderToVueElement({
+      extension: extendedExtension,
+      content: richContent,
+    })
+    if (typeof vueElement === 'string') {
+      throw new TypeError('Expected renderToVueElement to return a Vue VNode')
+    }
+
+    const vueHTML = normalizeFrameworkHTML(await renderVueToString(vueElement))
+    expectExtendedSSRHTML(vueHTML)
   })
 
   it('maps React attributes and removes unsafe static attributes', () => {
@@ -741,6 +843,39 @@ describe('framework renderers', () => {
 
     expect(ast.props.href).toBeUndefined()
     expect(ast.props.onclick).toBeUndefined()
+  })
+
+  it('renders safe static attributes through non-React framework SSR', async () => {
+    const content = {
+      type: 'doc',
+      content: [
+        {
+          type: 'label',
+          content: [{ type: 'text', text: 'Field' }],
+        },
+        { type: 'svg' },
+      ],
+    } satisfies NodeJSON
+
+    const preactHTML = renderPreactToStaticMarkup(
+      renderToPreactElement({ schema: attributeSchema, content }),
+    )
+    expectSafeStaticAttrsHTML(preactHTML)
+
+    const solidHTML = normalizeFrameworkHTML(
+      renderSolidToString(() =>
+        renderToSolidElement({ schema: attributeSchema, content }),
+      ),
+    )
+    expectSafeStaticAttrsHTML(solidHTML)
+
+    const vueElement = renderToVueElement({ schema: attributeSchema, content })
+    if (typeof vueElement === 'string') {
+      throw new TypeError('Expected renderToVueElement to return a Vue VNode')
+    }
+
+    const vueHTML = normalizeFrameworkHTML(await renderVueToString(vueElement))
+    expectSafeStaticAttrsHTML(vueHTML)
   })
 })
 

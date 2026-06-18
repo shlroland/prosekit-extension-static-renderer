@@ -22,6 +22,17 @@ pnpm add svelte
 pnpm add vue
 ```
 
+For server-side HTML output from framework renderers, use the framework's SSR
+package:
+
+```bash
+pnpm add react-dom
+pnpm add preact-render-to-string
+pnpm add @vue/server-renderer
+```
+
+Solid's `renderToString` is provided by `solid-js/web`.
+
 ## Usage
 
 Render from a ProseKit extension:
@@ -213,19 +224,58 @@ const element = render(content)
 const html = renderToStaticMarkup(element)
 ```
 
-### Other Frameworks
+### Preact
 
 ```ts
+import { renderToStaticMarkup } from 'preact-render-to-string'
 import { createPreactRenderer } from 'prosekit-static-renderer/preact'
+
+const render = createPreactRenderer({ extension })
+const vnode = render(content)
+const html = renderToStaticMarkup(vnode)
+```
+
+### Solid
+
+```tsx
 import { createSolidRenderer } from 'prosekit-static-renderer/solid'
-import { createSvelteRenderer } from 'prosekit-static-renderer/svelte'
+import { renderToString } from 'solid-js/web'
+
+const render = createSolidRenderer({ extension })
+const html = renderToString(() => render(content))
+```
+
+Solid does not use a virtual DOM. The renderer returns Solid elements created
+with Solid's runtime, and Solid's server renderer executes the render function
+to produce HTML directly. Solid may add hydration markers such as `data-hk` to
+SSR output when using its hydratable server renderer.
+
+### Vue
+
+```ts
+import { renderToString } from '@vue/server-renderer'
 import { createVueRenderer } from 'prosekit-static-renderer/vue'
 
-const preactVNode = createPreactRenderer({ extension })(content)
-const solidElement = createSolidRenderer({ extension })(content)
-const svelteAST = createSvelteRenderer({ extension })(content)
-const vueVNode = createVueRenderer({ extension })(content)
+const render = createVueRenderer({ extension })
+const vnode = render(content)
+const html = await renderToString(vnode)
 ```
+
+Vue's server renderer returns a promise. When the document root renders as a
+fragment, Vue may add fragment boundary comments to the generated HTML.
+
+### Svelte
+
+```ts
+import { createSvelteRenderer } from 'prosekit-static-renderer/svelte'
+
+const render = createSvelteRenderer({ extension })
+const ast = render(content)
+```
+
+The Svelte renderer returns a small serializable AST instead of a compiled
+Svelte component. Use it when you want to inspect, transform, or feed static
+content into your own Svelte rendering layer.
 
 ## Custom Mappings
 

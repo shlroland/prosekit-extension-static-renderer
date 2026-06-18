@@ -53,22 +53,47 @@
               >
                 React
               </button>
-              <button class="button-group-item" type="button" disabled>
-                Vue
-              </button>
-              <button class="button-group-item" type="button" disabled>
-                Solid
-              </button>
-              <button class="button-group-item" type="button" disabled>
+              <button
+                class="button-group-item"
+                type="button"
+                data-output-mode="preact"
+                aria-pressed="false"
+              >
                 Preact
               </button>
-              <button class="button-group-item" type="button" disabled>
+              <button
+                class="button-group-item"
+                type="button"
+                data-output-mode="solid"
+                aria-pressed="false"
+              >
+                Solid
+              </button>
+              <button
+                class="button-group-item"
+                type="button"
+                data-output-mode="vue"
+                aria-pressed="false"
+              >
+                Vue
+              </button>
+              <button
+                class="button-group-item"
+                type="button"
+                data-output-mode="svelte"
+                aria-pressed="false"
+              >
                 Svelte
               </button>
             </div>
           </div>
           <div id="text-output" class="output"></div>
-          <div id="react-output" class="output-render ProseMirror" hidden></div>
+          <div id="framework-output" class="output-render ProseMirror" hidden>
+            <div id="react-preview"></div>
+            <div id="preact-preview" hidden></div>
+            <div id="solid-preview" hidden></div>
+            <div id="vue-preview" hidden></div>
+          </div>
         </section>
       </main>
 

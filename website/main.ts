@@ -12,31 +12,64 @@ import { defineSuperscript } from '@prosekit/extensions/superscript'
 import { defineTextAlign } from '@prosekit/extensions/text-align'
 import { defineTextColor } from '@prosekit/extensions/text-color'
 import katex from 'katex'
+import { render as renderPreactPreview } from 'preact'
 import { createElement, useEffect, useState, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { render as renderSolidPreview } from 'solid-js/web'
+import { createApp as createVueApp, type App as VueApp } from 'vue'
 
 import { createHTMLRenderer } from '../src/html.ts'
 import { createMarkdownRenderer } from '../src/markdown.ts'
+import { createPreactRenderer } from '../src/preact.ts'
 import { createReactRenderer } from '../src/react.ts'
+import { createSolidRenderer } from '../src/solid.ts'
+import { createSvelteRenderer } from '../src/svelte.ts'
+import { createVueRenderer } from '../src/vue.ts'
 
 const editorElement = document.querySelector<HTMLDivElement>('#editor')
 const textOutput = document.querySelector<HTMLElement>('#text-output')
-const reactOutput = document.querySelector<HTMLDivElement>('#react-output')
+const frameworkOutput = document.querySelector<HTMLDivElement>(
+  '#framework-output',
+)
+const preactPreview = document.querySelector<HTMLDivElement>('#preact-preview')
+const reactPreview = document.querySelector<HTMLDivElement>('#react-preview')
+const solidPreview = document.querySelector<HTMLDivElement>('#solid-preview')
+const vuePreview = document.querySelector<HTMLDivElement>('#vue-preview')
 const outputTabs = Array.from(
   document.querySelectorAll<HTMLButtonElement>(
     '[data-output-mode]:not(:disabled)',
   ),
 )
 
-if (!editorElement || !textOutput || !reactOutput || outputTabs.length === 0) {
+if (
+  !editorElement
+  || !textOutput
+  || !frameworkOutput
+  || !preactPreview
+  || !reactPreview
+  || !solidPreview
+  || !vuePreview
+  || outputTabs.length === 0
+) {
   throw new Error('Failed to find demo elements')
 }
 
 const editorRoot = editorElement
 const textOutputElement = textOutput
-const reactOutputElement = reactOutput
+const frameworkOutputElement = frameworkOutput
+const preactPreviewElement = preactPreview
+const reactPreviewElement = reactPreview
+const solidPreviewElement = solidPreview
+const vuePreviewElement = vuePreview
 
-type OutputMode = 'html' | 'markdown' | 'react'
+type OutputMode =
+  | 'html'
+  | 'markdown'
+  | 'preact'
+  | 'react'
+  | 'solid'
+  | 'svelte'
+  | 'vue'
 
 let outputMode: OutputMode = 'html'
 let outputUpdateID = 0
@@ -60,6 +93,7 @@ async function createDemoHighlighter() {
     { createHighlighterCore },
     { createJavaScriptRegexEngine },
     { default: html },
+    { default: json },
     { default: markdown },
     { default: typescript },
     { default: githubLight },
@@ -68,6 +102,7 @@ async function createDemoHighlighter() {
     import('shiki/core'),
     import('shiki/engine/javascript'),
     import('shiki/langs/html.mjs'),
+    import('shiki/langs/json.mjs'),
     import('shiki/langs/markdown.mjs'),
     import('shiki/langs/typescript.mjs'),
     import('shiki/themes/github-light.mjs'),
@@ -76,7 +111,7 @@ async function createDemoHighlighter() {
 
   return await createHighlighterCore({
     engine: createJavaScriptRegexEngine(),
-    langs: [html, markdown, typescript],
+    langs: [html, json, markdown, typescript],
     themes: [githubLight, githubDark],
   })
 }
@@ -387,7 +422,12 @@ const defaultContent = {
               content: [
                 {
                   type: 'paragraph',
-                  content: [{ type: 'text', text: 'HTML, Markdown, React' }],
+                  content: [
+                    {
+                      type: 'text',
+                      text: 'HTML, Markdown, React, Preact, Solid, Vue, Svelte AST',
+                    },
+                  ],
                 },
               ],
             },
@@ -431,6 +471,7 @@ function start() {
   const extension = defineEditorExtension()
   const renderHTML = createHTMLRenderer({ extension })
   const renderMarkdown = createMarkdownRenderer({ extension })
+  const renderPreact = createPreactRenderer({ extension })
   const renderReact = createReactRenderer({
     extension,
     nodeMapping: {
@@ -454,37 +495,90 @@ function start() {
       },
     },
   })
-  const reactRoot = createRoot(reactOutputElement)
+  const renderSolid = createSolidRenderer({ extension })
+  const renderSvelte = createSvelteRenderer({ extension })
+  const renderVue = createVueRenderer({ extension })
+  const reactRoot = createRoot(reactPreviewElement)
+  let disposeSolid: (() => void) | undefined
+  let vueApp: VueApp<Element> | undefined
   const editor = createEditor<EditorExtension>({
     extension,
     defaultContent,
   })
 
+  function clearFrameworkOutput() {
+    reactRoot.render(null)
+    renderPreactPreview(null, preactPreviewElement)
+    disposeSolid?.()
+    disposeSolid = undefined
+    vueApp?.unmount()
+    vueApp = undefined
+    preactPreviewElement.hidden = true
+    reactPreviewElement.hidden = true
+    solidPreviewElement.hidden = true
+    vuePreviewElement.hidden = true
+    preactPreviewElement.innerHTML = ''
+    solidPreviewElement.innerHTML = ''
+    vuePreviewElement.innerHTML = ''
+  }
+
   async function updateOutput() {
     const updateID = ++outputUpdateID
     const doc = editor.getDocJSON()
-    const isReactMode = outputMode === 'react'
+    const isFrameworkMode =
+      outputMode === 'preact'
+      || outputMode === 'react'
+      || outputMode === 'solid'
+      || outputMode === 'vue'
 
-    textOutputElement.hidden = isReactMode
-    reactOutputElement.hidden = !isReactMode
+    textOutputElement.hidden = isFrameworkMode
+    frameworkOutputElement.hidden = !isFrameworkMode
 
     if (outputMode === 'html') {
-      reactRoot.render(null)
+      clearFrameworkOutput()
       const html = await formatHTML(renderHTML(doc))
       const highlightedHTML = await highlightCode(html, 'html')
       if (updateID === outputUpdateID && outputMode === 'html') {
         textOutputElement.innerHTML = highlightedHTML
       }
     } else if (outputMode === 'markdown') {
-      reactRoot.render(null)
+      clearFrameworkOutput()
       const markdown = renderMarkdown(doc)
       const highlightedMarkdown = await highlightCode(markdown, 'markdown')
       if (updateID === outputUpdateID && outputMode === 'markdown') {
         textOutputElement.innerHTML = highlightedMarkdown
       }
-    } else {
+    } else if (outputMode === 'svelte') {
+      clearFrameworkOutput()
+      const svelteAST = JSON.stringify(renderSvelte(doc), null, 2)
+      const highlightedAST = await highlightCode(svelteAST, 'json')
+      if (updateID === outputUpdateID && outputMode === 'svelte') {
+        textOutputElement.innerHTML = highlightedAST
+      }
+    } else if (outputMode === 'react') {
       textOutputElement.innerHTML = ''
+      clearFrameworkOutput()
+      reactPreviewElement.hidden = false
       reactRoot.render(renderReact(doc))
+    } else if (outputMode === 'preact') {
+      textOutputElement.innerHTML = ''
+      clearFrameworkOutput()
+      preactPreviewElement.hidden = false
+      renderPreactPreview(renderPreact(doc), preactPreviewElement)
+    } else if (outputMode === 'solid') {
+      textOutputElement.innerHTML = ''
+      clearFrameworkOutput()
+      solidPreviewElement.hidden = false
+      disposeSolid = renderSolidPreview(
+        () => renderSolid(doc),
+        solidPreviewElement,
+      )
+    } else if (outputMode === 'vue') {
+      textOutputElement.innerHTML = ''
+      clearFrameworkOutput()
+      vuePreviewElement.hidden = false
+      vueApp = createVueApp({ render: () => renderVue(doc) })
+      vueApp.mount(vuePreviewElement)
     }
   }
 
@@ -505,7 +599,11 @@ function start() {
       if (
         nextMode === 'html'
         || nextMode === 'markdown'
+        || nextMode === 'preact'
         || nextMode === 'react'
+        || nextMode === 'solid'
+        || nextMode === 'svelte'
+        || nextMode === 'vue'
       ) {
         setOutputMode(nextMode)
       }
