@@ -3,7 +3,10 @@ import type { ProseMirrorNode } from '@prosekit/pm/model'
 import { Fragment, h, type VNode } from 'vue'
 
 import { createRenderer } from './renderer.ts'
-import { createDOMOutputSpecParser, createMapAttrsToProps } from './shared/dom-output-spec.ts'
+import {
+  createDOMOutputSpecParser,
+  createMapAttrsToProps,
+} from './shared/dom-output-spec.ts'
 import type {
   CustomMappingOptions,
   StaticRendererCreateOptions,

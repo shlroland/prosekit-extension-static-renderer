@@ -4,7 +4,10 @@ import type { JSX } from 'solid-js'
 import { createComponent, Dynamic } from 'solid-js/web'
 
 import { createRenderer } from './renderer.ts'
-import { createDOMOutputSpecParser, createMapAttrsToProps } from './shared/dom-output-spec.ts'
+import {
+  createDOMOutputSpecParser,
+  createMapAttrsToProps,
+} from './shared/dom-output-spec.ts'
 import type {
   CustomMappingOptions,
   StaticRendererCreateOptions,

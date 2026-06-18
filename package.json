@@ -23,9 +23,6 @@
     "markdown"
   ],
   "sideEffects": false,
-  "engines": {
-    "node": ">=22"
-  },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -67,6 +64,9 @@
     "dist",
     "src"
   ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "tsdown && vite build website",
     "bump": "bumpp",

@@ -23,17 +23,13 @@ import { createMarkdownRenderer } from '../src/markdown.ts'
 import { createPreactRenderer } from '../src/preact.ts'
 import { createReactRenderer } from '../src/react.ts'
 import { createSolidRenderer } from '../src/solid.ts'
-import {
-  createSvelteRenderer,
-  type SvelteASTNode,
-} from '../src/svelte.ts'
+import { createSvelteRenderer, type SvelteASTNode } from '../src/svelte.ts'
 import { createVueRenderer } from '../src/vue.ts'
 
 const editorElement = document.querySelector<HTMLDivElement>('#editor')
 const textOutput = document.querySelector<HTMLElement>('#text-output')
-const frameworkOutput = document.querySelector<HTMLDivElement>(
-  '#framework-output',
-)
+const frameworkOutput =
+  document.querySelector<HTMLDivElement>('#framework-output')
 const preactPreview = document.querySelector<HTMLDivElement>('#preact-preview')
 const reactPreview = document.querySelector<HTMLDivElement>('#react-preview')
 const solidPreview = document.querySelector<HTMLDivElement>('#solid-preview')
@@ -46,15 +42,15 @@ const outputTabs = Array.from(
 )
 
 if (
-  !editorElement
-  || !textOutput
-  || !frameworkOutput
-  || !preactPreview
-  || !reactPreview
-  || !solidPreview
-  || !sveltePreview
-  || !vuePreview
-  || outputTabs.length === 0
+  !editorElement ||
+  !textOutput ||
+  !frameworkOutput ||
+  !preactPreview ||
+  !reactPreview ||
+  !solidPreview ||
+  !sveltePreview ||
+  !vuePreview ||
+  outputTabs.length === 0
 ) {
   throw new Error('Failed to find demo elements')
 }
@@ -120,10 +116,7 @@ async function createDemoHighlighter() {
   })
 }
 
-async function highlightCode(
-  code: string,
-  lang: string,
-): Promise<string> {
+async function highlightCode(code: string, lang: string): Promise<string> {
   highlighterPromise ??= createDemoHighlighter()
   const highlighter = await highlighterPromise
 
@@ -267,8 +260,10 @@ function defineEditorExtension() {
     defineMention(),
     definePageBreak(),
     defineMath({
-      renderMathBlock: (value, element) => renderMathToElement(value, element, true),
-      renderMathInline: (value, element) => renderMathToElement(value, element, false),
+      renderMathBlock: (value, element) =>
+        renderMathToElement(value, element, true),
+      renderMathInline: (value, element) =>
+        renderMathToElement(value, element, false),
     }),
     defineCodeBlockShiki({
       langs: ['typescript', 'tex', 'text'],
@@ -378,7 +373,10 @@ const defaultContent = {
         {
           type: 'paragraph',
           content: [
-            { type: 'text', text: 'Blockquotes render through the schema toDOM spec.' },
+            {
+              type: 'text',
+              text: 'Blockquotes render through the schema toDOM spec.',
+            },
           ],
         },
       ],
@@ -472,7 +470,12 @@ const defaultContent = {
     {
       type: 'codeBlock',
       attrs: { language: 'ts' },
-      content: [{ type: 'text', text: 'const render = createHTMLRenderer({ extension })' }],
+      content: [
+        {
+          type: 'text',
+          text: 'const render = createHTMLRenderer({ extension })',
+        },
+      ],
     },
     {
       type: 'image',
@@ -562,11 +565,11 @@ function start() {
     const updateID = ++outputUpdateID
     const doc = editor.getDocJSON()
     const isFrameworkMode =
-      outputMode === 'preact'
-      || outputMode === 'react'
-      || outputMode === 'solid'
-      || outputMode === 'svelte'
-      || outputMode === 'vue'
+      outputMode === 'preact' ||
+      outputMode === 'react' ||
+      outputMode === 'solid' ||
+      outputMode === 'svelte' ||
+      outputMode === 'vue'
 
     textOutputElement.hidden = isFrameworkMode
     frameworkOutputElement.hidden = !isFrameworkMode
@@ -632,13 +635,13 @@ function start() {
     tab.addEventListener('click', () => {
       const nextMode = tab.dataset.outputMode
       if (
-        nextMode === 'html'
-        || nextMode === 'markdown'
-        || nextMode === 'preact'
-        || nextMode === 'react'
-        || nextMode === 'solid'
-        || nextMode === 'svelte'
-        || nextMode === 'vue'
+        nextMode === 'html' ||
+        nextMode === 'markdown' ||
+        nextMode === 'preact' ||
+        nextMode === 'react' ||
+        nextMode === 'solid' ||
+        nextMode === 'svelte' ||
+        nextMode === 'vue'
       ) {
         setOutputMode(nextMode)
       }

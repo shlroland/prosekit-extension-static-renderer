@@ -5,7 +5,11 @@ import type {
   URLSanitizerContext,
 } from '../types.ts'
 
-import { filterStaticAttrs, stringifyStaticAttrValue, unsupportedDOMOutputSpecError } from './attrs.ts'
+import {
+  filterStaticAttrs,
+  stringifyStaticAttrValue,
+  unsupportedDOMOutputSpecError,
+} from './attrs.ts'
 
 /**
  * A function that creates an element from a tag, props, and children.
@@ -144,9 +148,7 @@ export function createDOMOutputSpecParser<T>(
               tag,
               mapAttrs(undefined, tag, options.sanitizeURL),
               renderChild(child),
-              ...[children]
-                .concat(rest)
-                .map((s) => parse(s)(child)),
+              ...[children].concat(rest).map((s) => parse(s)(child)),
             )
         }
 
@@ -167,9 +169,7 @@ export function createDOMOutputSpecParser<T>(
           createElement(
             tag,
             mapAttrs(attrs, tag, options.sanitizeURL),
-            ...[children]
-              .concat(rest)
-              .map((s) => parse(s)(child)),
+            ...[children].concat(rest).map((s) => parse(s)(child)),
           )
       }
     }

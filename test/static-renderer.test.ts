@@ -715,15 +715,11 @@ describe('framework renderers', () => {
       renderToStaticMarkup(renderToReactElement({ extension, content })),
     ).toBe(expectedHTML)
     expect(
-      renderPreactToStaticMarkup(
-        renderToPreactElement({ extension, content }),
-      ),
+      renderPreactToStaticMarkup(renderToPreactElement({ extension, content })),
     ).toBe(expectedHTML)
     expect(
       normalizeFrameworkHTML(
-        renderSolidToString(() =>
-          renderToSolidElement({ extension, content }),
-        ),
+        renderSolidToString(() => renderToSolidElement({ extension, content })),
       ),
     ).toBe(expectedHTML)
     const vueElement = renderToVueElement({ extension, content })
@@ -1005,7 +1001,11 @@ describe('unhandledNode and unhandledMark', () => {
   })
 
   it('calls unhandledNode with node, parent, and children', () => {
-    const calls: Array<{ name: string; hasParent: boolean; childCount: number }> = []
+    const calls: Array<{
+      name: string
+      hasParent: boolean
+      childCount: number
+    }> = []
 
     const html = renderToHTMLString({
       schema: unhandledSchema,
@@ -1033,7 +1033,11 @@ describe('unhandledNode and unhandledMark', () => {
 
     expect(html).toBe('<div>hello world</div>')
     expect(calls).toHaveLength(1)
-    expect(calls[0]).toMatchObject({ name: 'custom', hasParent: true, childCount: 1 })
+    expect(calls[0]).toMatchObject({
+      name: 'custom',
+      hasParent: true,
+      childCount: 1,
+    })
   })
 
   it('calls unhandledMark with mark, node, and children', () => {
@@ -1076,14 +1080,15 @@ describe('unhandledNode and unhandledMark', () => {
 
     const element = renderToReactElement({
       schema: unhandledSchema,
-      unhandledNode: ({ children }) => children as any,
+      unhandledNode: ({ children }) => children,
       content,
     })
     expect(isValidElement(element)).toBe(true)
 
     const vueElement = renderToVueElement({
       schema: unhandledSchema,
-      unhandledNode: ({ children }) => children as any,
+      unhandledNode: ({ children }) =>
+        Array.isArray(children) ? children[0] : children,
       content,
     })
     expect(vueElement).toBeTruthy()
@@ -1118,9 +1123,7 @@ describe('createHTMLRenderer reuse', () => {
       content: [
         {
           type: 'paragraph',
-          content: [
-            { type: 'text', marks: [{ type: 'bold' }], text: 'Third' },
-          ],
+          content: [{ type: 'text', marks: [{ type: 'bold' }], text: 'Third' }],
         },
       ],
     })
@@ -1141,13 +1144,17 @@ describe('createHTMLRenderer reuse', () => {
     expect(
       render({
         type: 'doc',
-        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'A' }] }],
+        content: [
+          { type: 'paragraph', content: [{ type: 'text', text: 'A' }] },
+        ],
       }),
     ).toBe('<div>A</div>')
     expect(
       render({
         type: 'doc',
-        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'B' }] }],
+        content: [
+          { type: 'paragraph', content: [{ type: 'text', text: 'B' }] },
+        ],
       }),
     ).toBe('<div>B</div>')
   })
@@ -1277,7 +1284,7 @@ describe('Svelte SSR integration', () => {
 
     function flattenText(node: typeof ast): string {
       if (typeof node === 'string') return node
-      return (node.children as Array<typeof ast>).map(flattenText).join('')
+      return node.children.map(flattenText).join('')
     }
 
     const text = flattenText(ast)
@@ -1346,10 +1353,7 @@ describe('empty and edge-case content', () => {
             content: [
               {
                 type: 'text',
-                marks: [
-                  { type: 'bold' },
-                  { type: 'italic' },
-                ],
+                marks: [{ type: 'bold' }, { type: 'italic' }],
                 text: 'bold italic',
               },
             ],
@@ -1418,9 +1422,7 @@ describe('ProseMirror Node instance input', () => {
       content: [
         {
           type: 'paragraph',
-          content: [
-            { type: 'text', marks: [{ type: 'bold' }], text: 'test' },
-          ],
+          content: [{ type: 'text', marks: [{ type: 'bold' }], text: 'test' }],
         },
       ],
     }
