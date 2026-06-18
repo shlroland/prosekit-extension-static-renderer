@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/shlroland/prosekit-static-renderer/compare/v0.4.0...v0.4.1) (2026-06-18)
+
+
+### Bug Fixes
+
+* resolve lint errors and package.json ordering ([0de5460](https://github.com/shlroland/prosekit-static-renderer/commit/0de546089c1121989af54d01dbe737dd048dcd15))
+
 ## [0.4.0](https://github.com/shlroland/prosekit-static-renderer/compare/v0.3.0...v0.4.0) (2026-06-18)
 
 
