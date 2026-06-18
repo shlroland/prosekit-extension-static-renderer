@@ -266,16 +266,41 @@ fragment, Vue may add fragment boundary comments to the generated HTML.
 
 ### Svelte
 
-```ts
+```svelte
+<!-- ProseMirrorRenderer.svelte -->
+<script lang="ts">
+  import type { SvelteASTNode } from 'prosekit-static-renderer/svelte'
+  import ProseMirrorRenderer from './ProseMirrorRenderer.svelte'
+
+  let { node }: { node: SvelteASTNode } = $props()
+</script>
+
+{#if typeof node === 'string'}
+  {node}
+{:else}
+  <svelte:element this={node.tag} {...node.props}>
+    {#each node.children as child}
+      <ProseMirrorRenderer node={child} />
+    {/each}
+  </svelte:element>
+{/if}
+```
+
+```svelte
+<script lang="ts">
 import { createSvelteRenderer } from 'prosekit-static-renderer/svelte'
+import ProseMirrorRenderer from './ProseMirrorRenderer.svelte'
 
 const render = createSvelteRenderer({ extension })
 const ast = render(content)
+</script>
+
+<ProseMirrorRenderer node={ast} />
 ```
 
 The Svelte renderer returns a small serializable AST instead of a compiled
-Svelte component. Use it when you want to inspect, transform, or feed static
-content into your own Svelte rendering layer.
+Svelte component. Render it with a recursive Svelte component like the example
+above, or adapt the AST into your own Svelte rendering layer.
 
 ## Custom Mappings
 

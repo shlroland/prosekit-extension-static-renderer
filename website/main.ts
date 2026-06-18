@@ -23,7 +23,10 @@ import { createMarkdownRenderer } from '../src/markdown.ts'
 import { createPreactRenderer } from '../src/preact.ts'
 import { createReactRenderer } from '../src/react.ts'
 import { createSolidRenderer } from '../src/solid.ts'
-import { createSvelteRenderer } from '../src/svelte.ts'
+import {
+  createSvelteRenderer,
+  type SvelteASTNode,
+} from '../src/svelte.ts'
 import { createVueRenderer } from '../src/vue.ts'
 
 const editorElement = document.querySelector<HTMLDivElement>('#editor')
@@ -34,6 +37,7 @@ const frameworkOutput = document.querySelector<HTMLDivElement>(
 const preactPreview = document.querySelector<HTMLDivElement>('#preact-preview')
 const reactPreview = document.querySelector<HTMLDivElement>('#react-preview')
 const solidPreview = document.querySelector<HTMLDivElement>('#solid-preview')
+const sveltePreview = document.querySelector<HTMLDivElement>('#svelte-preview')
 const vuePreview = document.querySelector<HTMLDivElement>('#vue-preview')
 const outputTabs = Array.from(
   document.querySelectorAll<HTMLButtonElement>(
@@ -48,6 +52,7 @@ if (
   || !preactPreview
   || !reactPreview
   || !solidPreview
+  || !sveltePreview
   || !vuePreview
   || outputTabs.length === 0
 ) {
@@ -60,6 +65,7 @@ const frameworkOutputElement = frameworkOutput
 const preactPreviewElement = preactPreview
 const reactPreviewElement = reactPreview
 const solidPreviewElement = solidPreview
+const sveltePreviewElement = sveltePreview
 const vuePreviewElement = vuePreview
 
 type OutputMode =
@@ -93,7 +99,6 @@ async function createDemoHighlighter() {
     { createHighlighterCore },
     { createJavaScriptRegexEngine },
     { default: html },
-    { default: json },
     { default: markdown },
     { default: typescript },
     { default: githubLight },
@@ -102,7 +107,6 @@ async function createDemoHighlighter() {
     import('shiki/core'),
     import('shiki/engine/javascript'),
     import('shiki/langs/html.mjs'),
-    import('shiki/langs/json.mjs'),
     import('shiki/langs/markdown.mjs'),
     import('shiki/langs/typescript.mjs'),
     import('shiki/themes/github-light.mjs'),
@@ -111,7 +115,7 @@ async function createDemoHighlighter() {
 
   return await createHighlighterCore({
     engine: createJavaScriptRegexEngine(),
-    langs: [html, json, markdown, typescript],
+    langs: [html, markdown, typescript],
     themes: [githubLight, githubDark],
   })
 }
@@ -155,6 +159,36 @@ function renderMathToElement(
     displayMode,
     throwOnError: false,
   })
+}
+
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+
+function appendSvelteASTNode(
+  parent: Node,
+  node: SvelteASTNode,
+  isSVG = false,
+): void {
+  if (typeof node === 'string') {
+    parent.appendChild(document.createTextNode(node))
+    return
+  }
+
+  const nextIsSVG = isSVG || node.tag === 'svg'
+  const element = nextIsSVG
+    ? document.createElementNS(SVG_NAMESPACE, node.tag)
+    : document.createElement(node.tag)
+
+  for (const [name, value] of Object.entries(node.props)) {
+    if (value != null) {
+      element.setAttribute(name, String(value))
+    }
+  }
+
+  for (const child of node.children) {
+    appendSvelteASTNode(element, child, nextIsSVG)
+  }
+
+  parent.appendChild(element)
 }
 
 function ReactCodeBlock({
@@ -516,9 +550,11 @@ function start() {
     preactPreviewElement.hidden = true
     reactPreviewElement.hidden = true
     solidPreviewElement.hidden = true
+    sveltePreviewElement.hidden = true
     vuePreviewElement.hidden = true
     preactPreviewElement.innerHTML = ''
     solidPreviewElement.innerHTML = ''
+    sveltePreviewElement.innerHTML = ''
     vuePreviewElement.innerHTML = ''
   }
 
@@ -529,6 +565,7 @@ function start() {
       outputMode === 'preact'
       || outputMode === 'react'
       || outputMode === 'solid'
+      || outputMode === 'svelte'
       || outputMode === 'vue'
 
     textOutputElement.hidden = isFrameworkMode
@@ -549,12 +586,10 @@ function start() {
         textOutputElement.innerHTML = highlightedMarkdown
       }
     } else if (outputMode === 'svelte') {
+      textOutputElement.innerHTML = ''
       clearFrameworkOutput()
-      const svelteAST = JSON.stringify(renderSvelte(doc), null, 2)
-      const highlightedAST = await highlightCode(svelteAST, 'json')
-      if (updateID === outputUpdateID && outputMode === 'svelte') {
-        textOutputElement.innerHTML = highlightedAST
-      }
+      sveltePreviewElement.hidden = false
+      appendSvelteASTNode(sveltePreviewElement, renderSvelte(doc))
     } else if (outputMode === 'react') {
       textOutputElement.innerHTML = ''
       clearFrameworkOutput()
