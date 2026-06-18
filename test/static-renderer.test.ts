@@ -952,3 +952,522 @@ describe('ProseKit extension compatibility', () => {
     expect(html).toContain('prosemirror-math-block')
   })
 })
+
+describe('unhandledNode and unhandledMark', () => {
+  const unhandledSchema = new Schema({
+    nodes: {
+      doc: { content: 'block+' },
+      paragraph: {
+        content: 'inline*',
+        group: 'block',
+        toDOM: () => ['p', 0],
+      },
+      custom: {
+        content: 'inline*',
+        group: 'block',
+      },
+      text: { group: 'inline' },
+    },
+    marks: {
+      customMark: {},
+    },
+  })
+
+  it('throws when a node has no toDOM and no unhandledNode', () => {
+    expect(() =>
+      renderToHTMLString({
+        schema: unhandledSchema,
+        content: {
+          type: 'doc',
+          content: [{ type: 'custom', content: [{ type: 'text', text: 'x' }] }],
+        },
+      }),
+    ).toThrow('Node type "custom" has no toDOM method')
+  })
+
+  it('throws when a mark has no toDOM and no unhandledMark', () => {
+    expect(() =>
+      renderToHTMLString({
+        schema: unhandledSchema,
+        content: {
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                { type: 'text', marks: [{ type: 'customMark' }], text: 'x' },
+              ],
+            },
+          ],
+        },
+      }),
+    ).toThrow('Mark type "customMark" has no toDOM method')
+  })
+
+  it('calls unhandledNode with node, parent, and children', () => {
+    const calls: Array<{ name: string; hasParent: boolean; childCount: number }> = []
+
+    const html = renderToHTMLString({
+      schema: unhandledSchema,
+      unhandledNode: ({ node, parent, children }) => {
+        calls.push({
+          name: node.type.name,
+          hasParent: parent != null,
+          childCount: Array.isArray(children) ? children.length : 1,
+        })
+        return `<div>${Array.isArray(children) ? children.join('') : children}</div>`
+      },
+      content: {
+        type: 'doc',
+        content: [
+          {
+            type: 'custom',
+            content: [
+              { type: 'text', text: 'hello' },
+              { type: 'text', text: ' world' },
+            ],
+          },
+        ],
+      },
+    })
+
+    expect(html).toBe('<div>hello world</div>')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toMatchObject({ name: 'custom', hasParent: true, childCount: 1 })
+  })
+
+  it('calls unhandledMark with mark, node, and children', () => {
+    const calls: Array<{ markName: string; text: string }> = []
+
+    const html = renderToHTMLString({
+      schema: unhandledSchema,
+      unhandledMark: ({ mark, node, children }) => {
+        calls.push({ markName: mark.type.name, text: node.textContent })
+        return `<span>${children}</span>`
+      },
+      content: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', marks: [{ type: 'customMark' }], text: 'marked' },
+            ],
+          },
+        ],
+      },
+    })
+
+    expect(html).toBe('<p><span>marked</span></p>')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toMatchObject({ markName: 'customMark', text: 'marked' })
+  })
+
+  it('works with framework renderers', () => {
+    const content = {
+      type: 'doc',
+      content: [
+        {
+          type: 'custom',
+          content: [{ type: 'text', text: 'fallback' }],
+        },
+      ],
+    } satisfies NodeJSON
+
+    const element = renderToReactElement({
+      schema: unhandledSchema,
+      unhandledNode: ({ children }) => children,
+      content,
+    })
+    expect(isValidElement(element)).toBe(true)
+
+    const vueElement = renderToVueElement({
+      schema: unhandledSchema,
+      unhandledNode: ({ children }) => children,
+      content,
+    })
+    expect(vueElement).toBeTruthy()
+  })
+})
+
+describe('createHTMLRenderer reuse', () => {
+  it('produces correct output across multiple calls', () => {
+    const render = createHTMLRenderer({ extension })
+
+    const first = render({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'First' }],
+        },
+      ],
+    })
+    const second = render({
+      type: 'doc',
+      content: [
+        {
+          type: 'heading',
+          attrs: { level: 2 },
+          content: [{ type: 'text', text: 'Second' }],
+        },
+      ],
+    })
+    const third = render({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'bold' }], text: 'Third' },
+          ],
+        },
+      ],
+    })
+
+    expect(first).toBe('<p>First</p>')
+    expect(second).toBe('<h2>Second</h2>')
+    expect(third).toBe('<p><strong>Third</strong></p>')
+  })
+
+  it('preserves custom mappings across calls', () => {
+    const render = createHTMLRenderer({
+      extension,
+      nodeMapping: {
+        paragraph: ({ children }) => `<div>${children}</div>`,
+      },
+    })
+
+    expect(
+      render({
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'A' }] }],
+      }),
+    ).toBe('<div>A</div>')
+    expect(
+      render({
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'B' }] }],
+      }),
+    ).toBe('<div>B</div>')
+  })
+})
+
+describe('custom sanitizeURL for non-HTML renderers', () => {
+  const linkContent = {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            marks: [{ type: 'link', attrs: { href: 'javascript:alert(1)' } }],
+            text: 'bad link',
+          },
+        ],
+      },
+    ],
+  } satisfies NodeJSON
+
+  it('applies custom sanitizeURL in Markdown renderer', () => {
+    const markdown = renderToMarkdown({
+      extension,
+      sanitizeURL: () => null,
+      content: linkContent,
+    })
+    expect(markdown).not.toContain('javascript:')
+    expect(markdown).toContain('bad link')
+  })
+
+  it('applies custom sanitizeURL in React renderer', () => {
+    const element = renderToReactElement({
+      extension,
+      sanitizeURL: () => null,
+      content: linkContent,
+    })
+    const html = renderToStaticMarkup(element)
+    expect(html).not.toContain('javascript:')
+    expect(html).not.toContain('href')
+  })
+
+  it('applies custom sanitizeURL in Preact renderer', () => {
+    const html = renderPreactToStaticMarkup(
+      renderToPreactElement({
+        extension,
+        sanitizeURL: () => null,
+        content: linkContent,
+      }),
+    )
+    expect(html).not.toContain('javascript:')
+    expect(html).not.toContain('href')
+  })
+
+  it('applies custom sanitizeURL in Solid renderer', () => {
+    const html = normalizeFrameworkHTML(
+      renderSolidToString(() =>
+        renderToSolidElement({
+          extension,
+          sanitizeURL: () => null,
+          content: linkContent,
+        }),
+      ),
+    )
+    expect(html).not.toContain('javascript:')
+    expect(html).not.toContain('href')
+  })
+
+  it('applies custom sanitizeURL in Vue renderer', async () => {
+    const vueElement = renderToVueElement({
+      extension,
+      sanitizeURL: () => null,
+      content: linkContent,
+    })
+    if (typeof vueElement === 'string') {
+      throw new TypeError('Expected VNode')
+    }
+    const html = normalizeFrameworkHTML(await renderVueToString(vueElement))
+    expect(html).not.toContain('javascript:')
+    expect(html).not.toContain('href')
+  })
+
+  it('allows custom protocols through custom sanitizeURL', () => {
+    const ipfsContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'link', attrs: { href: 'ipfs://Qm123' } }],
+              text: 'link',
+            },
+          ],
+        },
+      ],
+    } satisfies NodeJSON
+
+    const markdown = renderToMarkdown({
+      extension,
+      sanitizeURL: (url) => url,
+      content: ipfsContent,
+    })
+    expect(markdown).toContain('ipfs://Qm123')
+  })
+})
+
+describe('Svelte SSR integration', () => {
+  it('renders extended content as a valid Svelte AST', () => {
+    const ast = renderToSvelteAST({
+      extension: extendedExtension,
+      content: richContent,
+    })
+
+    expect(ast).toBeTruthy()
+    expect(typeof ast).toBe('object')
+
+    if (typeof ast === 'string') {
+      throw new TypeError('Expected SvelteASTNode object')
+    }
+
+    expect(ast.tag).toBeDefined()
+    expect(ast.children).toBeDefined()
+    expect(Array.isArray(ast.children)).toBe(true)
+
+    function flattenText(node: typeof ast): string {
+      if (typeof node === 'string') return node
+      return (node.children as Array<typeof ast>).map(flattenText).join('')
+    }
+
+    const text = flattenText(ast)
+    expect(text).toContain('Extended ProseKit Content')
+    expect(text).toContain('italic')
+    expect(text).toContain('underline')
+    expect(text).toContain('Bullet item')
+  })
+
+  it('removes unsafe attributes from Svelte AST', () => {
+    const ast = renderToSvelteAST({
+      schema: attributeSchema,
+      content: {
+        type: 'doc',
+        content: [
+          {
+            type: 'label',
+            content: [{ type: 'text', text: 'Field' }],
+          },
+        ],
+      },
+    })
+
+    if (typeof ast === 'string') {
+      throw new TypeError('Expected SvelteASTNode object')
+    }
+
+    expect(ast.props).toMatchObject({
+      class: 'field-label',
+      for: 'field-id',
+      'data-role': 'label',
+    })
+    expect(ast.props).not.toHaveProperty('href')
+    expect(ast.props).not.toHaveProperty('onclick')
+  })
+})
+
+describe('empty and edge-case content', () => {
+  it('renders an empty doc', () => {
+    const html = renderToHTMLString({
+      extension,
+      content: { type: 'doc' },
+    })
+    expect(html).toBe('')
+  })
+
+  it('renders a doc with an empty paragraph', () => {
+    const html = renderToHTMLString({
+      extension,
+      content: {
+        type: 'doc',
+        content: [{ type: 'paragraph' }],
+      },
+    })
+    expect(html).toBe('<p></p>')
+  })
+
+  it('renders text with multiple marks stacked', () => {
+    const html = renderToHTMLString({
+      extension,
+      content: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                marks: [
+                  { type: 'bold' },
+                  { type: 'italic' },
+                ],
+                text: 'bold italic',
+              },
+            ],
+          },
+        ],
+      },
+    })
+    expect(html).toBe('<p><em><strong>bold italic</strong></em></p>')
+  })
+
+  it('renders empty markdown for empty doc', () => {
+    const markdown = renderToMarkdown({
+      extension,
+      content: { type: 'doc' },
+    })
+    expect(markdown).toBe('')
+  })
+
+  it('renders empty framework elements for empty doc', () => {
+    const content = { type: 'doc' } satisfies NodeJSON
+
+    const reactEl = renderToReactElement({ extension, content })
+    expect(reactEl).toBeTruthy()
+
+    const vueEl = renderToVueElement({ extension, content })
+    expect(vueEl).toBeTruthy()
+  })
+
+  it('renders a single text node without a parent block', () => {
+    const html = renderToHTMLString({
+      extension,
+      content: {
+        type: 'doc',
+        content: [{ type: 'text', text: 'orphan' }],
+      },
+    })
+    expect(html).toBe('orphan')
+  })
+})
+
+describe('ProseMirror Node instance input', () => {
+  it('accepts a ProseMirrorNode instance directly', () => {
+    const schema = extension.schema
+    if (!schema) throw new Error('Expected schema')
+
+    const node = schema.nodeFromJSON({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'from node' }],
+        },
+      ],
+    })
+
+    const html = renderToHTMLString({ extension, content: node })
+    expect(html).toBe('<p>from node</p>')
+  })
+
+  it('produces identical output for JSON and Node input', () => {
+    const schema = extension.schema
+    if (!schema) throw new Error('Expected schema')
+
+    const json = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'bold' }], text: 'test' },
+          ],
+        },
+      ],
+    }
+
+    const node = schema.nodeFromJSON(json)
+
+    const fromJSON = renderToHTMLString({ extension, content: json })
+    const fromNode = renderToHTMLString({ extension, content: node })
+    expect(fromJSON).toBe(fromNode)
+  })
+
+  it('works with Markdown renderer', () => {
+    const schema = extension.schema
+    if (!schema) throw new Error('Expected schema')
+
+    const node = schema.nodeFromJSON({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'markdown node' }],
+        },
+      ],
+    })
+
+    const markdown = renderToMarkdown({ extension, content: node })
+    expect(markdown).toContain('markdown node')
+  })
+
+  it('works with framework renderers', () => {
+    const schema = extension.schema
+    if (!schema) throw new Error('Expected schema')
+
+    const node = schema.nodeFromJSON({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'framework node' }],
+        },
+      ],
+    })
+
+    const reactEl = renderToReactElement({ extension, content: node })
+    expect(isValidElement(reactEl)).toBe(true)
+
+    const vueEl = renderToVueElement({ extension, content: node })
+    expect(vueEl).toBeTruthy()
+  })
+})
