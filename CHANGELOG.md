@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/shlroland/prosekit-static-renderer/compare/v0.4.1...v0.5.0) (2026-07-01)
+
+
+### Features
+
+* remove ProseKit runtime dependencies ([#6](https://github.com/shlroland/prosekit-static-renderer/issues/6)) ([2b92dee](https://github.com/shlroland/prosekit-static-renderer/commit/2b92dee8d30d727b18daa6e5b38db4fb18d52f8c))
+
 ## [0.4.1](https://github.com/shlroland/prosekit-static-renderer/compare/v0.4.0...v0.4.1) (2026-06-18)
 
 
