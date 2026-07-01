@@ -1,6 +1,3 @@
-import type { NodeJSON } from '@prosekit/core'
-import type { ProseMirrorNode } from '@prosekit/pm/model'
-
 import {
   createDOMOutputSpecToHTMLString,
   serializeChildrenToHTMLString,
@@ -8,6 +5,8 @@ import {
 import { createRenderer } from './renderer.ts'
 import type {
   CustomMappingOptions,
+  NodeJSON,
+  ProseMirrorNode,
   StaticRendererCreateOptions,
   StaticRendererOptions,
   StaticRendererSchemaOptions,

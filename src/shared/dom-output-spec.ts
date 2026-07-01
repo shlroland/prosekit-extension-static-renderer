@@ -84,7 +84,7 @@ export function createDOMOutputSpecParser<T>(
 ): DomOutputSpecToElement<T> {
   const parse: DomOutputSpecToElement<T> = (spec) => {
     if (typeof spec === 'string') {
-      return () => spec
+      return () => spec as T
     }
 
     if (typeof spec === 'object' && spec && 'length' in spec) {

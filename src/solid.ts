@@ -1,5 +1,3 @@
-import type { NodeJSON } from '@prosekit/core'
-import type { ProseMirrorNode } from '@prosekit/pm/model'
 import type { JSX } from 'solid-js'
 import { createComponent, Dynamic } from 'solid-js/web'
 
@@ -10,6 +8,8 @@ import {
 } from './shared/dom-output-spec.ts'
 import type {
   CustomMappingOptions,
+  NodeJSON,
+  ProseMirrorNode,
   StaticRendererCreateOptions,
   StaticRendererOptions,
   StaticRendererSchemaOptions,
