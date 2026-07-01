@@ -1,6 +1,3 @@
-import type { NodeJSON } from '@prosekit/core'
-import type { ProseMirrorNode } from '@prosekit/pm/model'
-
 import { createRenderer } from './renderer.ts'
 import {
   createDOMOutputSpecParser,
@@ -8,6 +5,8 @@ import {
 } from './shared/dom-output-spec.ts'
 import type {
   CustomMappingOptions,
+  NodeJSON,
+  ProseMirrorNode,
   StaticRendererCreateOptions,
   StaticRendererOptions,
   StaticRendererSchemaOptions,

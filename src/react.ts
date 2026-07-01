@@ -1,11 +1,11 @@
-import type { NodeJSON } from '@prosekit/core'
-import type { ProseMirrorNode } from '@prosekit/pm/model'
 import { createElement, Fragment, type ReactNode } from 'react'
 
 import { createDOMOutputSpecToReactElement } from './react/dom-output-spec.ts'
 import { createRenderer } from './renderer.ts'
 import type {
   CustomMappingOptions,
+  NodeJSON,
+  ProseMirrorNode,
   StaticRendererCreateOptions,
   StaticRendererOptions,
   StaticRendererSchemaOptions,

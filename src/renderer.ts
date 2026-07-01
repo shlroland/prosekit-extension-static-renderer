@@ -1,9 +1,9 @@
-import { isProseMirrorNode, type NodeJSON } from '@prosekit/core'
-import type { ProseMirrorNode, Schema } from '@prosekit/pm/model'
-
 import type {
   CustomMappingOptions,
   DomOutputSpecToElement,
+  NodeJSON,
+  ProseMirrorNode,
+  Schema,
   StaticRendererSchemaOptions,
 } from './types.ts'
 
@@ -163,4 +163,14 @@ function getSchema(options: StaticRendererSchemaOptions): Schema {
     )
   }
   return schema
+}
+
+function isProseMirrorNode(value: unknown): value is ProseMirrorNode {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    'forEach' in value &&
+    'marks' in value
+  )
 }

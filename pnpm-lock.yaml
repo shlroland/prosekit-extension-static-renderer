@@ -7,13 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@prosekit/core':
-        specifier: ^0.12.2
-        version: 0.12.2(prosemirror-model@1.25.7)(prosemirror-state@1.4.4)(prosemirror-transform@1.12.0)
-      '@prosekit/pm':
-        specifier: ^0.1.17
-        version: 0.1.17
     devDependencies:
       '@ocavue/eslint-config':
         specifier: ^4.5.9
@@ -24,9 +17,15 @@ importers:
       '@prosekit/basic':
         specifier: ^0.9.4
         version: 0.9.4(@shikijs/types@4.1.0)(@types/hast@3.0.4)(prosemirror-model@1.25.7)(prosemirror-state@1.4.4)(prosemirror-transform@1.12.0)(prosemirror-view@1.41.8)
+      '@prosekit/core':
+        specifier: ^0.12.2
+        version: 0.12.2(prosemirror-model@1.25.7)(prosemirror-state@1.4.4)(prosemirror-transform@1.12.0)
       '@prosekit/extensions':
         specifier: ^0.17.3
         version: 0.17.3(@shikijs/types@4.1.0)(@types/hast@3.0.4)(prosemirror-model@1.25.7)(prosemirror-state@1.4.4)(prosemirror-transform@1.12.0)(prosemirror-view@1.41.8)
+      '@prosekit/pm':
+        specifier: ^0.1.17
+        version: 0.1.17
       '@types/node':
         specifier: ^22.19.11
         version: 22.19.11

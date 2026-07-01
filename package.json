@@ -79,10 +79,6 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b"
   },
-  "dependencies": {
-    "@prosekit/core": "^0.12.2",
-    "@prosekit/pm": "^0.1.17"
-  },
   "peerDependencies": {
     "preact": ">= 10.11.0",
     "react": ">= 18.2.0",
@@ -115,7 +111,9 @@
     "@ocavue/eslint-config": "^4.5.9",
     "@ocavue/tsconfig": "^0.7.1",
     "@prosekit/basic": "^0.9.4",
+    "@prosekit/core": "^0.12.2",
     "@prosekit/extensions": "^0.17.3",
+    "@prosekit/pm": "^0.1.17",
     "@types/node": "^22.19.11",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",

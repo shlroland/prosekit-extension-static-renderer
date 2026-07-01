@@ -1,6 +1,3 @@
-import type { NodeJSON } from '@prosekit/core'
-import type { ProseMirrorNode } from '@prosekit/pm/model'
-
 import { createHTMLRenderer } from './html.ts'
 import {
   createDefaultMarkdownMarkMapping,
@@ -8,6 +5,8 @@ import {
 } from './markdown/mappings.ts'
 import type {
   CustomMappingOptions,
+  NodeJSON,
+  ProseMirrorNode,
   StaticRendererCreateOptions,
   StaticRendererOptions,
   StaticRendererSchemaOptions,

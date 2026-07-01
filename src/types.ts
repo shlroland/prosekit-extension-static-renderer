@@ -1,11 +1,68 @@
-import type { Extension, NodeJSON } from '@prosekit/core'
-import type {
-  Attrs,
-  DOMOutputSpec,
-  Mark,
-  ProseMirrorNode,
-  Schema,
-} from '@prosekit/pm/model'
+export type Attrs = Record<string, any>
+
+/**
+ * A JSON representation of a ProseMirror node.
+ */
+export interface NodeJSON {
+  type: string
+  marks?: Array<{ type: string; attrs?: Attrs }>
+  text?: string
+  content?: NodeJSON[]
+  attrs?: Attrs
+}
+
+export interface ProseMirrorNodeType {
+  name: string
+  spec: NodeSpec
+}
+
+export interface ProseMirrorMarkType {
+  name: string
+  spec: MarkSpec
+}
+
+export interface ProseMirrorMark {
+  type: ProseMirrorMarkType
+  attrs: Attrs
+}
+
+export interface ProseMirrorNode {
+  type: ProseMirrorNodeType
+  attrs: Attrs
+  marks: readonly ProseMirrorMark[]
+  firstChild: ProseMirrorNode | null
+  childCount: number
+  text?: string
+  textContent: string
+  forEach: (
+    callback: (node: ProseMirrorNode, offset: number, index: number) => void,
+  ) => void
+}
+
+export interface NodeSpec {
+  toDOM?: (node: any) => DOMOutputSpec
+  [key: string]: any
+}
+
+export interface MarkSpec {
+  toDOM?: (mark: any, inline: boolean) => DOMOutputSpec
+  [key: string]: any
+}
+
+export interface Schema {
+  nodes: Record<string, ProseMirrorNodeType | undefined>
+  marks: Record<string, ProseMirrorMarkType | undefined>
+  nodeFromJSON: (json: any) => ProseMirrorNode
+}
+
+export interface Extension {
+  schema: Schema | null
+  extension?: Extension | Extension[]
+  priority?: unknown
+  _type?: unknown
+}
+
+export type DOMOutputSpec = unknown
 
 /**
  * Options for providing the ProseMirror schema used by the static renderer.
@@ -117,7 +174,7 @@ export interface MarkProps<T> {
   /**
    * The current mark to render.
    */
-  mark: Mark
+  mark: ProseMirrorMark
 
   /**
    * The node this mark is applied to.
